@@ -60,10 +60,11 @@ import fitnesse.components.Base64;
 /**
  * An extension of RestFixture that generates a sequence diagrams for a table
  * fixture. Sequence diagrams are generated as SVG files using <a
- * href="">Patternity Graphic</a>. <br/>
+ * href="http://cyrille.martraire.com/2008/12/new-java-api-uml-diagrams/"
+ * >Patternity Graphic</a>. <br/>
  * Each picture can then be transcoded into either PNG or JPG format (via <a
- * href="">Batik transcoder API</a>). The format is inferred by the file
- * extension. <br/>
+ * href="http://xmlgraphics.apache.org/batik/using/transcoder.html">Batik
+ * transcoder API</a>). The format is inferred by the file extension. <br/>
  * The fixture supports a configuration property.
  * <table border="1">
  * <tr>
@@ -113,297 +114,314 @@ import fitnesse.components.Base64;
  * 
  */
 public class SlimRestFixtureWithSeq extends RestFixture {
-	
+
 	public static final String DEFAULT_GRAPH_DIR_PROPERTY_NAME = "restfixture.graphs.dir";
 
 	/**
 	 * Model interface for storing http events.
 	 * 
 	 * @author smartrics
-	 *
+	 * 
 	 */
-    public interface Model {
+	public interface Model {
 
-        void delete(String res, String args, String ret);
+		void delete(String res, String args, String ret);
 
-        void comment(String body);
+		void comment(String body);
 
-        void get(String res, String args, String ret);
+		void get(String res, String args, String ret);
 
-        void post(String res, String args, String result);
+		void post(String res, String args, String result);
 
-        void put(String res, String args, String ret);
+		void put(String res, String args, String ret);
 
-    }
+	}
 
-    static final Log LOG = LogFactory.getLog(SlimRestFixtureWithSeq.class);
+	static final Log LOG = LogFactory.getLog(SlimRestFixtureWithSeq.class);
 
-    /**
-     * Default directory where the diagrams are generated. 
-     * 
-     * The value is <code>new File("restfixture")</code>, a directory relative to the default
-     * fitnesse root directory.
-     */
-    private File graphFileDir;
+	/**
+	 * Default directory where the diagrams are generated.
+	 * 
+	 * The value is <code>new File("restfixture")</code>, a directory relative
+	 * to the default fitnesse root directory.
+	 */
+	private File graphFileDir;
 
-    /**
-     * This fixture instance picture name.
-     */
-    private String pictureName;
+	/**
+	 * This fixture instance picture name.
+	 */
+	private String pictureName;
 
-    /**
-     * This fixture instance picture data. 
-     * 
-     * Picture data is a composite string containig the path to the image file 
-     * and a sequence of attributes in the form of name=value.
-     */
-    private String pictureData;
+	/**
+	 * This fixture instance picture data.
+	 * 
+	 * Picture data is a composite string containig the path to the image file
+	 * and a sequence of attributes in the form of name=value.
+	 */
+	private String pictureData;
 
-    private Model model;
+	private Model model;
 
-    private boolean initialised;
+	private boolean initialised;
 
-    /**
-     * Listens to events raised by the fixture and captures them in the model.
-     */
-    private MyFixtureListener myFixtureListener;
+	/**
+	 * Listens to events raised by the fixture and captures them in the model.
+	 */
+	private MyFixtureListener myFixtureListener;
 
-    /**
-     * Svg attributes.
-     */
-    private Map<String, String> attributes;
+	/**
+	 * Svg attributes.
+	 */
+	private Map<String, String> attributes;
 
-    /**
-     * File format.
-     */
-    private String format;
+	/**
+	 * File format.
+	 */
+	private String format;
 
-    @SuppressWarnings("rawtypes")
-    private CellWrapper cell;
+	@SuppressWarnings("rawtypes")
+	private CellWrapper cell;
 
-    public SlimRestFixtureWithSeq() {
-        super();
-        this.initialised = false;
-        LOG.info("Default ctor");
-    }
+	public SlimRestFixtureWithSeq() {
+		super();
+		this.initialised = false;
+		LOG.info("Default ctor");
+	}
 
-    public SlimRestFixtureWithSeq(String hostName, String pictureData) {
-        super(hostName);
-        this.pictureData = pictureData;
-        this.initialised = false;
-    }
+	public SlimRestFixtureWithSeq(String hostName, String pictureData) {
+		super(hostName);
+		this.pictureData = pictureData;
+		this.initialised = false;
+	}
 
-    public SlimRestFixtureWithSeq(String hostName, String configName, String pictureData) {
-        super(hostName, configName);
-        this.pictureData = pictureData;
-        this.initialised = false;
-    }
+	public SlimRestFixtureWithSeq(String hostName, String configName,
+			String pictureData) {
+		super(hostName, configName);
+		this.pictureData = pictureData;
+		this.initialised = false;
+	}
 
-    public SlimRestFixtureWithSeq(PartsFactory partsFactory, String hostName, String configName, String pictureData) {
-        super(partsFactory, hostName, configName);
-        this.pictureData = pictureData;
-        this.initialised = false;
-    }
+	public SlimRestFixtureWithSeq(PartsFactory partsFactory, String hostName,
+			String configName, String pictureData) {
+		super(partsFactory, hostName, configName);
+		this.pictureData = pictureData;
+		this.initialised = false;
+	}
 
-    /**
-     * embeds as a &lt;img> with content encoded the model caprured so far.
-     */
-    public void embed() {
-        cell = row.getCell(1);
-        byte[] content = PictureGenerator.generate(model.toString(), parseAttributes(cell.body()), "template.svg", format);
-        cell.body(getFormatter().gray("<img src=\"data:image/" + format + ";base64," + new String(Base64.encode(content)) + "\" />"));
-    }
+	/**
+	 * embeds as a &lt;img> with content encoded the model caprured so far.
+	 */
+	public void embed() {
+		cell = row.getCell(1);
+		byte[] content = PictureGenerator.generate(model.toString(),
+				parseAttributes(cell.body()), "template.svg", format);
+		cell.body(getFormatter().gray(
+				"<img src=\"data:image/" + format + ";base64,"
+						+ new String(Base64.encode(content)) + "\" />"));
+	}
 
-    public void setModel(Model model) {
-        this.model = model;
-    }
+	public void setModel(Model model) {
+		this.model = model;
+	}
 
-    @Override
-    protected void initialize(Runner runner) {
-        super.initialize(runner);
-        initializeFields();
-        createSequenceModel();
-        initialised = true;
-        String defaultPicsDir = System.getProperty(DEFAULT_GRAPH_DIR_PROPERTY_NAME, "FitNesseRoot/files/restfixture");
-        String picsDir = getConfig().get(DEFAULT_GRAPH_DIR_PROPERTY_NAME, defaultPicsDir);
-        graphFileDir = new File(picsDir);
-        if (!graphFileDir.exists()) {
-            if (!graphFileDir.mkdirs()) {
-                throw new RuntimeException("Unable to create the diagrams destination dir '" + graphFileDir.getAbsolutePath() + "'");
-            } else {
-                LOG.info("Created diagrams destination directory '" + graphFileDir.getAbsolutePath() + "'");
-            }
-        }
-        myFixtureListener = new MyFixtureListener(new File(graphFileDir, this.getPictureName()).getAbsolutePath(), model, attributes);
-        setFixtureListener(myFixtureListener);
-    }
+	@Override
+	protected void initialize(Runner runner) {
+		super.initialize(runner);
+		initializeFields();
+		createSequenceModel();
+		initialised = true;
+		String defaultPicsDir = System.getProperty(
+				DEFAULT_GRAPH_DIR_PROPERTY_NAME,
+				"FitNesseRoot/files/restfixture");
+		String picsDir = getConfig().get(DEFAULT_GRAPH_DIR_PROPERTY_NAME,
+				defaultPicsDir);
+		graphFileDir = new File(picsDir);
+		if (!graphFileDir.exists()) {
+			if (!graphFileDir.mkdirs()) {
+				throw new RuntimeException(
+						"Unable to create the diagrams destination dir '"
+								+ graphFileDir.getAbsolutePath() + "'");
+			} else {
+				LOG.info("Created diagrams destination directory '"
+						+ graphFileDir.getAbsolutePath() + "'");
+			}
+		}
+		myFixtureListener = new MyFixtureListener(new File(graphFileDir,
+				this.getPictureName()).getAbsolutePath(), model, attributes);
+		setFixtureListener(myFixtureListener);
+	}
 
-    /**
-     * State of the RestFixtureWithSeq is valid (or true) if both the baseUrl
-     * and picture name are not null. These parameters are the first and second
-     * in input to the fixture.
-     * 
-     * @return true if valid.
-     */
-    @Override
-    protected boolean validateState() {
-        return getBaseUrl() != null && pictureData != null;
-    }
+	/**
+	 * State of the RestFixtureWithSeq is valid (or true) if both the baseUrl
+	 * and picture name are not null. These parameters are the first and second
+	 * in input to the fixture.
+	 * 
+	 * @return true if valid.
+	 */
+	@Override
+	protected boolean validateState() {
+		return getBaseUrl() != null && pictureData != null;
+	}
 
-    @Override
-    protected void notifyInvalidState(boolean state) {
-        if (!state) {
-            throw new RuntimeException("Both baseUrl and picture data (containing the picture name) need to be passed to the fixture");
-        }
-    }
+	@Override
+	protected void notifyInvalidState(boolean state) {
+		if (!state) {
+			throw new RuntimeException(
+					"Both baseUrl and picture data (containing the picture name) need to be passed to the fixture");
+		}
+	}
 
-    protected void createSequenceModel() {
-        if (!initialised) {
-            LOG.info("Initialising sequence model");
-            this.model = new SequenceModel();
-        }
-    }
+	protected void createSequenceModel() {
+		if (!initialised) {
+			LOG.info("Initialising sequence model");
+			this.model = new SequenceModel();
+		}
+	}
 
-    /**
-     * Overridden as SLIM can't find it.
-     * 
-     * Note: for SLIM to find this method it has to be defined in the java file
-     * after the override of the ActionFixture method
-     */
-    @Override
-    public List<List<String>> doTable(List<List<String>> rows) {
-        List<List<String>> result = super.doTable(rows);
-        myFixtureListener.tableFinished();
-        return result;
-    }
+	/**
+	 * Overridden as SLIM can't find it.
+	 * 
+	 * Note: for SLIM to find this method it has to be defined in the java file
+	 * after the override of the ActionFixture method
+	 */
+	@Override
+	public List<List<String>> doTable(List<List<String>> rows) {
+		List<List<String>> result = super.doTable(rows);
+		myFixtureListener.tableFinished();
+		return result;
+	}
 
-    @Override
-    public void setBody() {
-        super.setBody();
-    }
+	@Override
+	public void setBody() {
+		super.setBody();
+	}
 
-    /**
-     * a DELETE generates a message and a return arrows.
-     */
-    @Override
-    public void DELETE() {
-        super.DELETE();
-        String res = getLastRequest().getResource();
-        String args = getLastRequest().getQuery();
-        String ret = "status=" + getLastResponse().getStatusCode().toString();
-        model.delete(res, args, ret);
-    }
+	/**
+	 * a DELETE generates a message and a return arrows.
+	 */
+	@Override
+	public void DELETE() {
+		super.DELETE();
+		String res = getLastRequest().getResource();
+		String args = getLastRequest().getQuery();
+		String ret = "status=" + getLastResponse().getStatusCode().toString();
+		model.delete(res, args, ret);
+	}
 
-    @Override
-    public void comment() {
-        super.comment();
-        @SuppressWarnings("rawtypes")
-        CellWrapper messageCell = row.getCell(1);
-        String body = messageCell.body();
-        String plainBody = Tools.fromHtml(body).trim();
-        model.comment(plainBody);
-    }
+	@Override
+	public void comment() {
+		super.comment();
+		@SuppressWarnings("rawtypes")
+		CellWrapper messageCell = row.getCell(1);
+		String body = messageCell.body();
+		String plainBody = Tools.fromHtml(body).trim();
+		model.comment(plainBody);
+	}
 
-    /**
-     * a GET generates a message and a return arrows.
-     */
-    @Override
-    public void GET() {
-        super.GET();
-        String res = getResource();
-        String args = getLastRequest().getQuery();
-        String ret = "status=" + getLastResponse().getStatusCode().toString();
-        model.get(res, args, ret);
-    }
+	/**
+	 * a GET generates a message and a return arrows.
+	 */
+	@Override
+	public void GET() {
+		super.GET();
+		String res = getResource();
+		String args = getLastRequest().getQuery();
+		String ret = "status=" + getLastResponse().getStatusCode().toString();
+		model.get(res, args, ret);
+	}
 
-    /**
-     * a POST generates a message to the resource type, which in turn generates
-     * a create to the resource just created. The resource uri must be defined
-     * in the <code>Location</code> header in the POST response. A return arrow
-     * is then generated.
-     */
-    @Override
-    public void POST() {
-        super.POST();
-        String res = getResource();
-        String id = getIdFromLocationHeader();
-        // could ever be that the POST to /abc returns a location of /qwe/1 ??
-        String result = String.format("id=%s, status=%s", id, getLastResponse().getStatusCode().toString());
-        String args = getLastRequest().getQuery();
-        model.post(res, args, result);
-    }
+	/**
+	 * a POST generates a message to the resource type, which in turn generates
+	 * a create to the resource just created. The resource uri must be defined
+	 * in the <code>Location</code> header in the POST response. A return arrow
+	 * is then generated.
+	 */
+	@Override
+	public void POST() {
+		super.POST();
+		String res = getResource();
+		String id = getIdFromLocationHeader();
+		// could ever be that the POST to /abc returns a location of /qwe/1 ??
+		String result = String.format("id=%s, status=%s", id, getLastResponse()
+				.getStatusCode().toString());
+		String args = getLastRequest().getQuery();
+		model.post(res, args, result);
+	}
 
-    /**
-     * a PUT generates a message and a return arrows.
-     */
-    @Override
-    public void PUT() {
-        super.PUT();
-        String res = getResource();
-        String args = getLastRequest().getQuery();
-        String ret = "status=" + getLastResponse().getStatusCode().toString();
-        model.put(res, args, ret);
-    }
+	/**
+	 * a PUT generates a message and a return arrows.
+	 */
+	@Override
+	public void PUT() {
+		super.PUT();
+		String res = getResource();
+		String args = getLastRequest().getQuery();
+		String ret = "status=" + getLastResponse().getStatusCode().toString();
+		model.put(res, args, ret);
+	}
 
-    /**
-     * the picture name is the second parameter of the fixture.
-     * 
-     * @return the picture name
-     */
-    String getPictureName() {
-        return pictureName;
-    }
+	/**
+	 * the picture name is the second parameter of the fixture.
+	 * 
+	 * @return the picture name
+	 */
+	String getPictureName() {
+		return pictureName;
+	}
 
-    void setFixtureListener(MyFixtureListener l) {
-        this.myFixtureListener = l;
-    }
+	void setFixtureListener(MyFixtureListener l) {
+		this.myFixtureListener = l;
+	}
 
-    private static String getPictureFormat(String pictureName) {
-        int pos = pictureName.indexOf(".");
-        if (pos >= 0) {
-            return pictureName.substring(pos + 1).toLowerCase();
-        }
-        throw new IllegalArgumentException("The picture name must terminate with an extension of .svg, .png, .jpg");
-    }
+	private static String getPictureFormat(String pictureName) {
+		int pos = pictureName.indexOf(".");
+		if (pos >= 0) {
+			return pictureName.substring(pos + 1).toLowerCase();
+		}
+		throw new IllegalArgumentException(
+				"The picture name must terminate with an extension of .svg, .png, .jpg");
+	}
 
-    private void initializeFields() {
-        if (!initialised) {
-            String data = pictureData;
-            LOG.info("Picture data = " + pictureData);
-            int[] pos = getPositionOfNextOfTokenOptionallyInDoubleQuotes(data);
-            this.pictureName = data.substring(pos[0], pos[1]);
-            LOG.info("Found picture name: " + pictureName);
-            if (pos[1] < data.length()) {
-                data = data.substring(pos[1] + 1);
-                this.attributes = parseAttributes(data);
-            }
-            this.format = getPictureFormat(pictureName);
-        }
-    }
+	private void initializeFields() {
+		if (!initialised) {
+			String data = pictureData;
+			LOG.info("Picture data = " + pictureData);
+			int[] pos = getPositionOfNextOfTokenOptionallyInDoubleQuotes(data);
+			this.pictureName = data.substring(pos[0], pos[1]);
+			LOG.info("Found picture name: " + pictureName);
+			if (pos[1] < data.length()) {
+				data = data.substring(pos[1] + 1);
+				this.attributes = parseAttributes(data);
+			}
+			this.format = getPictureFormat(pictureName);
+		}
+	}
 
-    private static Map<String, String> parseAttributes(String data) {
-        Map<String, String> foundAttributes = new HashMap<String, String>();
-        while (true) {
-            int eqPos = data.indexOf("=");
-            if (eqPos < 0) {
-                break;
-            }
-            String aName = data.substring(0, eqPos);
-            LOG.info("Found attribute name: " + aName);
-            data = data.substring(eqPos + 1);
-            int[] pos = getPositionOfNextOfTokenOptionallyInDoubleQuotes(data);
-            String aVal = data.substring(pos[0], pos[1]);
-            LOG.info("Found attribute val: " + aVal + ", pos[" + pos[0] + ", " + pos[1] + "]");
-            foundAttributes.put(aName, aVal);
-            if (data.length() - aVal.length() == 0) {
-                break;
-            }
-            data = data.substring(pos[1] + 1);
-        }
-        return foundAttributes;
-    }
+	private static Map<String, String> parseAttributes(String data) {
+		Map<String, String> foundAttributes = new HashMap<String, String>();
+		while (true) {
+			int eqPos = data.indexOf("=");
+			if (eqPos < 0) {
+				break;
+			}
+			String aName = data.substring(0, eqPos);
+			LOG.info("Found attribute name: " + aName);
+			data = data.substring(eqPos + 1);
+			int[] pos = getPositionOfNextOfTokenOptionallyInDoubleQuotes(data);
+			String aVal = data.substring(pos[0], pos[1]);
+			LOG.info("Found attribute val: " + aVal + ", pos[" + pos[0] + ", "
+					+ pos[1] + "]");
+			foundAttributes.put(aName, aVal);
+			if (data.length() - aVal.length() == 0) {
+				break;
+			}
+			data = data.substring(pos[1] + 1);
+		}
+		return foundAttributes;
+	}
 
-	private static int[] getPositionOfNextOfTokenOptionallyInDoubleQuotes(String data) {
+	private static int[] getPositionOfNextOfTokenOptionallyInDoubleQuotes(
+			String data) {
 		String del = " ";
 		int start = 0;
 		if (data.trim().startsWith("\"")) {
@@ -469,75 +487,77 @@ public class SlimRestFixtureWithSeq extends RestFixture {
  * 
  */
 class SequenceModel implements Model {
-    private Map<String, Resource> resourceToAgentMap;
-    private Node root;
-    private SequenceLayout layout;
-    /**
-     * Hints to the SVG files generator.
-     */
-    private static final int DEFAULT_FONT_SIZE = 16;
-    private static final int DEFAULT_AGENT_STEP = 150;
-    private static final int DEFAULT_TIME_STEP = 25;
+	private Map<String, Resource> resourceToAgentMap;
+	private Node root;
+	private SequenceLayout layout;
+	/**
+	 * Hints to the SVG files generator.
+	 */
+	private static final int DEFAULT_FONT_SIZE = 16;
+	private static final int DEFAULT_AGENT_STEP = 150;
+	private static final int DEFAULT_TIME_STEP = 25;
 
-    SequenceModel() {
-        Message message = new Message(null, null);
-        Node root = new Node(message);
-        SequenceLayout layout = new SequenceLayout(DEFAULT_FONT_SIZE);
-        layout.setAgentStep(DEFAULT_AGENT_STEP);
-        layout.setTimeStep(DEFAULT_TIME_STEP);
+	SequenceModel() {
+		Message message = new Message(null, null);
+		Node root = new Node(message);
+		SequenceLayout layout = new SequenceLayout(DEFAULT_FONT_SIZE);
+		layout.setAgentStep(DEFAULT_AGENT_STEP);
+		layout.setTimeStep(DEFAULT_TIME_STEP);
 
-        this.root = root;
-        this.layout = layout;
-        this.resourceToAgentMap = new HashMap<String, Resource>();
-    }
+		this.root = root;
+		this.layout = layout;
+		this.resourceToAgentMap = new HashMap<String, Resource>();
+	}
 
-    public void comment(String text) {
-        root.add(new Node(new Note(Tools.fromHtml(text))));
-    }
+	public void comment(String text) {
+		root.add(new Node(new Note(Tools.fromHtml(text))));
+	}
 
-    public void get(String resource, String query, String result) {
-        message(Message.SYNC, resource, "GET", query, result);
-    }
+	public void get(String resource, String query, String result) {
+		message(Message.SYNC, resource, "GET", query, result);
+	}
 
-    public void post(String resource, String query, String result) {
-        message(Message.SYNC, resource, "POST", query, result);
-    }
+	public void post(String resource, String query, String result) {
+		message(Message.SYNC, resource, "POST", query, result);
+	}
 
-    public void put(String resource, String query, String result) {
-        message(Message.SYNC, resource, "PUT", query, result);
-    }
+	public void put(String resource, String query, String result) {
+		message(Message.SYNC, resource, "PUT", query, result);
+	}
 
-    public void delete(String resource, String query, String result) {
-        message(Message.DESTROY, resource, "DELETE", query, result);
-    }
+	public void delete(String resource, String query, String result) {
+		message(Message.DESTROY, resource, "DELETE", query, result);
+	}
 
-    public String toString() {
-        return layout.layout(root);
-    }
+	public String toString() {
+		return layout.layout(root);
+	}
 
-    private void message(int type, String resourceTo, String method, String args, String result) {
-        Agent agentTo = agentFor(resourceTo);
-        String methodSignature = method;
-        if(args != null) {
-        	methodSignature = method + "(" + args + ")";
-        }
-        String resultString = ""; 
-        if(result != null) {
-            resultString = result;
-        }
-        Message message = new Message(type, agentTo, methodSignature, resultString);
-        root.add(new Node(message));
-    }
+	private void message(int type, String resourceTo, String method,
+			String args, String result) {
+		Agent agentTo = agentFor(resourceTo);
+		String methodSignature = method;
+		if (args != null) {
+			methodSignature = method + "(" + args + ")";
+		}
+		String resultString = "";
+		if (result != null) {
+			resultString = result;
+		}
+		Message message = new Message(type, agentTo, methodSignature,
+				resultString);
+		root.add(new Node(message));
+	}
 
-    private Resource agentFor(String resource) {
-        Resource a = resourceToAgentMap.get(resource);
-        if (a == null) {
-            final boolean isActivable = true;
-            a = new Resource(resource, isActivable);
-            resourceToAgentMap.put(resource, a);
-        }
-        return a;
-    }
+	private Resource agentFor(String resource) {
+		Resource a = resourceToAgentMap.get(resource);
+		if (a == null) {
+			final boolean isActivable = true;
+			a = new Resource(resource, isActivable);
+			resourceToAgentMap.put(resource, a);
+		}
+		return a;
+	}
 }
 
 /**
@@ -549,13 +569,14 @@ class SequenceModel implements Model {
  */
 class Resource extends Agent {
 
-    public Resource(String type, boolean isActivable) {
-        super(type, "", isActivable);
-    }
+	public Resource(String type, boolean isActivable) {
+		super(type, "", isActivable);
+	}
 
-    public String toString() {
-        return isEllipsis() ? "..." : (new StringBuilder()).append(getType()).toString();
-    }
+	public String toString() {
+		return isEllipsis() ? "..." : (new StringBuilder()).append(getType())
+				.toString();
+	}
 }
 
 /**
@@ -566,82 +587,93 @@ class Resource extends Agent {
  */
 class MyFixtureListener implements EventListener {
 
-    private final Model model;
-    private final String picFileName;
-    private final Map<String, String> attributes;
+	private final Model model;
+	private final String picFileName;
+	private final Map<String, String> attributes;
 
-    /**
-     * @param f
-     *            the fixture instance backing up a table. it's necessary as the
-     *            file name is only know at execution time and the
-     *            <code>args</code> array containing the file name for the
-     *            diagram is not known until the fixture has been created @
-     * @param supportFilesDir
-     *            the directory containing the support files needed to generate
-     *            the diagram
-     * @param graphDir
-     *            the directory where the sequence diagram is generated
-     */
-    public MyFixtureListener(String outFileName, Model m, Map<String, String> attr) {
-        model = m;
-        attributes = attr != null ? attr : new HashMap<String, String>();
-        picFileName = outFileName;
-    }
+	/**
+	 * @param f
+	 *            the fixture instance backing up a table. it's necessary as the
+	 *            file name is only know at execution time and the
+	 *            <code>args</code> array containing the file name for the
+	 *            diagram is not known until the fixture has been created @
+	 * @param supportFilesDir
+	 *            the directory containing the support files needed to generate
+	 *            the diagram
+	 * @param graphDir
+	 *            the directory where the sequence diagram is generated
+	 */
+	public MyFixtureListener(String outFileName, Model m,
+			Map<String, String> attr) {
+		model = m;
+		attributes = attr != null ? attr : new HashMap<String, String>();
+		picFileName = outFileName;
+	}
 
-    /**
-     * generates the sequence diagram with the events collected in the model.
-     */
-    public void tableFinished() {
-        int pos = picFileName.lastIndexOf(".");
-        String format = "svg";
-        if (pos > 0) {
-            format = picFileName.substring(pos + 1).toLowerCase();
-        }
-        byte[] content = PictureGenerator.generate(model.toString(), attributes, "template.svg", format);
-        File f = new File(picFileName);
-        try {
-            f.createNewFile();
-        } catch (IOException e1) {
-            throw new IllegalArgumentException("Unable to create output picture file: " + f.getAbsolutePath(), e1);
-        }
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(f);
-        } catch (FileNotFoundException e1) {
-            throw new IllegalArgumentException("Unable to find output picture file: " + f.getAbsolutePath(), e1);
-        }
-        try {
-            fos.write(content);
-        } catch (IOException e1) {
-            throw new IllegalArgumentException("Unable to write output picture file: " + f.getAbsolutePath(), e1);
-        }
-        try {
-            fos.flush();
-        } catch (IOException e1) {
-            throw new IllegalArgumentException("Unable to flush output picture file: " + f.getAbsolutePath());
-        }
-        try {
-            if (fos != null) {
-                fos.close();
-            }
-        } catch (IOException e) {
-        }
-    }
+	/**
+	 * generates the sequence diagram with the events collected in the model.
+	 */
+	public void tableFinished() {
+		int pos = picFileName.lastIndexOf(".");
+		String format = "svg";
+		if (pos > 0) {
+			format = picFileName.substring(pos + 1).toLowerCase();
+		}
+		byte[] content = PictureGenerator.generate(model.toString(),
+				attributes, "template.svg", format);
+		File f = new File(picFileName);
+		try {
+			f.createNewFile();
+		} catch (IOException e1) {
+			throw new IllegalArgumentException(
+					"Unable to create output picture file: "
+							+ f.getAbsolutePath(), e1);
+		}
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(f);
+		} catch (FileNotFoundException e1) {
+			throw new IllegalArgumentException(
+					"Unable to find output picture file: "
+							+ f.getAbsolutePath(), e1);
+		}
+		try {
+			fos.write(content);
+		} catch (IOException e1) {
+			throw new IllegalArgumentException(
+					"Unable to write output picture file: "
+							+ f.getAbsolutePath(), e1);
+		}
+		try {
+			fos.flush();
+		} catch (IOException e1) {
+			throw new IllegalArgumentException(
+					"Unable to flush output picture file: "
+							+ f.getAbsolutePath());
+		}
+		try {
+			if (fos != null) {
+				fos.close();
+			}
+		} catch (IOException e) {
+		}
+	}
 
 }
 
 /**
- * Utility class to generate picture wrapping the Patternity Graphic svg utility.
+ * Utility class to generate picture wrapping the Patternity Graphic svg
+ * utility.
  * 
  * @author smartrics
- *
+ * 
  */
 class PictureGenerator {
 
 	private PictureGenerator() {
-		
+
 	}
-	
+
 	/**
 	 * generates a byte array with the content of the picture from an svg
 	 * template.
@@ -656,82 +688,96 @@ class PictureGenerator {
 	 *            the format of the output rasterised image.
 	 * @return a byte array of the picture in the given format.
 	 */
-    public static byte[] generate(String content, Map<String, String> attributes, String svgTemplate, String format) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final TemplatedWriter writer = new TemplatedWriter(baos, svgTemplate);
-        StringBuffer sb = new StringBuffer();
-        for (Map.Entry<String, String> e : attributes.entrySet()) {
-            sb.append(e.getKey()).append("=\"").append(e.getValue()).append("\" ");
-        }
-        writer.write(content, sb.toString());
-        byte[] ret = baos.toByteArray();
-        try {
-            baos.close();
-        } catch (IOException e) {
-        	SlimRestFixtureWithSeq.LOG.debug("Exception closing byte array output stream");
-        }
-        if (format.equals("svg")) {
-            return ret;
-        } else {
-            Integer w = null;
-            String widthString = attributes.get("width");
+	public static byte[] generate(String content,
+			Map<String, String> attributes, String svgTemplate, String format) {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		final TemplatedWriter writer = new TemplatedWriter(baos, svgTemplate);
+		StringBuffer sb = new StringBuffer();
+		for (Map.Entry<String, String> e : attributes.entrySet()) {
+			sb.append(e.getKey()).append("=\"").append(e.getValue())
+					.append("\" ");
+		}
+		writer.write(content, sb.toString());
+		byte[] ret = baos.toByteArray();
+		try {
+			baos.close();
+		} catch (IOException e) {
+			SlimRestFixtureWithSeq.LOG
+					.debug("Exception closing byte array output stream");
+		}
+		if (format.equals("svg")) {
+			return ret;
+		} else {
+			Integer w = null;
+			String widthString = attributes.get("width");
 			if (widthString != null) {
-                try {
-                    w = Integer.parseInt(widthString);
-                } catch (NumberFormatException e) {
-                	SlimRestFixtureWithSeq.LOG.debug("Unable to parse width as integer: " + widthString);
-                }
-            }
-            Integer h = null;
-            String heightString = attributes.get("height");
+				try {
+					w = Integer.parseInt(widthString);
+				} catch (NumberFormatException e) {
+					SlimRestFixtureWithSeq.LOG
+							.debug("Unable to parse width as integer: "
+									+ widthString);
+				}
+			}
+			Integer h = null;
+			String heightString = attributes.get("height");
 			if (heightString != null) {
-                try {
-                    h = Integer.parseInt(heightString);
-                } catch (NumberFormatException e) {
-                	SlimRestFixtureWithSeq.LOG.debug("Unable to parse height as integer: " + heightString);
-                }
-            }
-            return transcode(ret, format, w, h);
-        }
-    }
+				try {
+					h = Integer.parseInt(heightString);
+				} catch (NumberFormatException e) {
+					SlimRestFixtureWithSeq.LOG
+							.debug("Unable to parse height as integer: "
+									+ heightString);
+				}
+			}
+			return transcode(ret, format, w, h);
+		}
+	}
 
-    public static byte[] transcode(byte[] svg, String format, Integer w, Integer h) {
-        ImageTranscoder trans = null;
-        if (format.equals("jpg")) {
-            trans = new JPEGTranscoder();
-        } else if (format.equals("png")) {
-            trans = new PNGTranscoder();
-        } else {
-            throw new IllegalArgumentException("Unsupported raster format. Only jpg and png: " + format);
-        }
-        TranscoderInput input = new TranscoderInput(new ByteArrayInputStream(svg));
-        ByteArrayOutputStream ostream = new ByteArrayOutputStream();
-        TranscoderOutput output = new TranscoderOutput(ostream);
-        if (w != null && h != null) {
-            Rectangle aoi = new Rectangle(w, h);
-            trans.addTranscodingHint(JPEGTranscoder.KEY_WIDTH, new Float(aoi.width));
-            trans.addTranscodingHint(JPEGTranscoder.KEY_HEIGHT, new Float(aoi.height));
-            trans.addTranscodingHint(ImageTranscoder.KEY_FORCE_TRANSPARENT_WHITE, Boolean.FALSE);
-            trans.addTranscodingHint(JPEGTranscoder.KEY_AOI, aoi);
-        }
-        try {
-            trans.transcode(input, output);
-        } catch (TranscoderException e) {
-            throw new IllegalStateException("Unable to transcode to format: " + format, e);
-        }
-        try {
-            ostream.flush();
-        } catch (IOException e) {
-        	SlimRestFixtureWithSeq.LOG.debug("Unable to flush output stream");
-            // should be safe to ignore
-        }
-        try {
-            ostream.close();
-        } catch (IOException e) {
-        	SlimRestFixtureWithSeq.LOG.debug("Unable to close output stream");
-            // should be safe to ignore
-        }
-        return ostream.toByteArray();
-    }
+	public static byte[] transcode(byte[] svg, String format, Integer w,
+			Integer h) {
+		ImageTranscoder trans = null;
+		if (format.equals("jpg")) {
+			trans = new JPEGTranscoder();
+		} else if (format.equals("png")) {
+			trans = new PNGTranscoder();
+		} else {
+			throw new IllegalArgumentException(
+					"Unsupported raster format. Only jpg and png: " + format);
+		}
+		TranscoderInput input = new TranscoderInput(new ByteArrayInputStream(
+				svg));
+		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
+		TranscoderOutput output = new TranscoderOutput(ostream);
+		if (w != null && h != null) {
+			Rectangle aoi = new Rectangle(w, h);
+			trans.addTranscodingHint(JPEGTranscoder.KEY_WIDTH, new Float(
+					aoi.width));
+			trans.addTranscodingHint(JPEGTranscoder.KEY_HEIGHT, new Float(
+					aoi.height));
+			trans.addTranscodingHint(
+					ImageTranscoder.KEY_FORCE_TRANSPARENT_WHITE, Boolean.FALSE);
+			trans.addTranscodingHint(JPEGTranscoder.KEY_AOI, aoi);
+		}
+		try {
+			trans.transcode(input, output);
+		} catch (TranscoderException e) {
+			throw new IllegalStateException("Unable to transcode to format: "
+					+ format, e);
+		}
+		try {
+			ostream.flush();
+		} catch (IOException e) {
+			SlimRestFixtureWithSeq.LOG.debug("Unable to flush output stream");
+			// should be safe to ignore
+		}
+		try {
+			ostream.close();
+		} catch (IOException e) {
+			SlimRestFixtureWithSeq.LOG.debug("Unable to close output stream");
+			// should be safe to ignore
+		}
+		return ostream.toByteArray();
+	}
 
 }
