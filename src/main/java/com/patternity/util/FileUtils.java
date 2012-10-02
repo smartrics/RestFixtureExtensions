@@ -100,4 +100,18 @@ public final class FileUtils {
         return buffer.toString();
     }
 
+    public static void makeDirs(File dir) {
+    	if(dir == null) {
+    		throw new IllegalArgumentException("null value for directory");
+    	}
+    	if(!dir.exists()) {
+    		if(!dir.mkdirs()) {
+    			throw new IllegalArgumentException("Unable to create directory: " + dir.getAbsolutePath());
+    		}
+    	}
+    	if(!dir.isDirectory()) {
+    		throw new IllegalArgumentException("not a directory: " + dir.getAbsolutePath());
+    	}
+    }
+    
 }

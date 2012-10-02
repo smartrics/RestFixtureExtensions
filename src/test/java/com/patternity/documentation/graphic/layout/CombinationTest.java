@@ -13,6 +13,7 @@ import com.patternity.graphic.svg.BoxStyle;
 import com.patternity.graphic.svg.Diagram;
 import com.patternity.graphic.svg.DiagramRenderer;
 import com.patternity.graphic.svg.LinkStyle;
+import com.patternity.util.FileUtils;
 import com.patternity.util.Named;
 import com.patternity.util.TemplatedWriter;
 
@@ -24,7 +25,6 @@ import com.patternity.util.TemplatedWriter;
  * @author cyrille martraire
  */
 public class CombinationTest {
-
 	private char label = 'A';
 	private FlowLayout flow = new FlowLayout(3);
 
@@ -42,9 +42,7 @@ public class CombinationTest {
 	public final int DISTINCT = ALLOCATION + 1;
 	public final int SELF = DISTINCT + 1;
 	public final int TO_PARENT = SELF + 1;// FROM ONE CHILD
-	public final int FROM_PARENT = TO_PARENT + 1;// TO EVERY CHILD (template
-
-	// method)
+	public final int FROM_PARENT = TO_PARENT + 1;// TO EVERY CHILD (template method)
 
 	private final StringBuffer buffer = new StringBuffer();
 
@@ -56,6 +54,8 @@ public class CombinationTest {
 		final LinkStyle[] links = { LinkStyle.DELEGATION, LinkStyle.ALLOCATION };
 		final int[] relations = { SELF, TO_PARENT, FROM_PARENT };
 
+		File outputDir = new File("target/patternity.temp");
+		FileUtils.makeDirs(outputDir);
 		for (int i = 0; i < items.length; i++) {
 			final int item1 = items[i];
 			for (int j = 0; j < items2.length; j++) {
@@ -67,25 +67,25 @@ public class CombinationTest {
 						if (item1 == INHERITANCE_HIERARCHY) {
 							for (int l = 0; l < relations.length; l++) {
 								final int relation = relations[l];
-								execute(item1, item2, linkStyle, relation);
+								execute(outputDir, item1, item2, linkStyle, relation);
 							}
 						} else {
-							execute(item1, item2, linkStyle, SELF);
+							execute(outputDir, item1, item2, linkStyle, SELF);
 						}
 					} else {
-						execute(item1, item2, linkStyle, DISTINCT);
+						execute(outputDir, item1, item2, linkStyle, DISTINCT);
 					}
 				}
 			}
 		}
 	}
 
-	public void execute(int item1, int item2, LinkStyle linkStyle, int relation) {
+	public void execute(File baseDir, int item1, int item2, LinkStyle linkStyle, int relation) {
 		executeEach(item1, item2, linkStyle, relation);
 
-		final String filename = "src/test/resources/combinations/" + "Combinations" + ".svg";
+		final String filename = "Combinations" + ".svg";
 
-		write(buffer.toString(), filename);
+		write(baseDir, buffer.toString(), filename);
 	}
 
 	protected static String translate(final String content, final Position position) {
@@ -143,8 +143,9 @@ public class CombinationTest {
 		buffer.append(translate(content, position, combinationName));
 	}
 
-	protected void write(final String content, final String filename) {
-		final TemplatedWriter writer = new TemplatedWriter(new File(filename), new File("template.svg"));
+	protected void write(File baseDir, final String content, final String filename) {
+		FileUtils.makeDirs(baseDir);
+		final TemplatedWriter writer = new TemplatedWriter(new File(baseDir, filename), new File("template.svg"));
 		writer.write(content, "viewBox=\"0 0 1500 3000\"");
 	}
 

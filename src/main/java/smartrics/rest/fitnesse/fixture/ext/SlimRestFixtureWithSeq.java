@@ -230,22 +230,17 @@ public class SlimRestFixtureWithSeq extends RestFixture {
 		initializeFields();
 		createSequenceModel();
 		initialised = true;
-		String defaultPicsDir = System.getProperty(
-				DEFAULT_GRAPH_DIR_PROPERTY_NAME,
-				"FitNesseRoot/files/restfixture");
-		String picsDir = getConfig().get(DEFAULT_GRAPH_DIR_PROPERTY_NAME,
-				defaultPicsDir);
+		String defaultPicsDir = System.getProperty(DEFAULT_GRAPH_DIR_PROPERTY_NAME, "FitNesseRoot/files/restfixture");
+		String picsDir = getConfig().get(DEFAULT_GRAPH_DIR_PROPERTY_NAME, defaultPicsDir);
 		graphFileDir = new File(picsDir);
 		if (!graphFileDir.exists()) {
 			if (!graphFileDir.mkdirs()) {
-				throw new RuntimeException(
-						"Unable to create the diagrams destination dir '"
-								+ graphFileDir.getAbsolutePath() + "'");
+				throw new RuntimeException("Unable to create the diagrams destination dir '" + graphFileDir.getAbsolutePath() + "'");
 			} else {
-				LOG.info("Created diagrams destination directory '"
-						+ graphFileDir.getAbsolutePath() + "'");
+				LOG.info("Created diagrams destination directory '" + graphFileDir.getAbsolutePath() + "'");
 			}
 		}
+		LOG.info("Generated diagrams directory: '"+ graphFileDir.getAbsolutePath() + "'");
 		myFixtureListener = new MyFixtureListener(new File(graphFileDir,
 				this.getPictureName()).getAbsolutePath(), model, attributes);
 		setFixtureListener(myFixtureListener);

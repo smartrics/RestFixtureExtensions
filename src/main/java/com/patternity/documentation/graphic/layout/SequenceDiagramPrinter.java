@@ -15,6 +15,7 @@ import com.patternity.graphic.behavioral.Agent;
 import com.patternity.graphic.behavioral.Message;
 import com.patternity.graphic.dag.Node;
 import com.patternity.graphic.layout.sequence.SequenceLayout;
+import com.patternity.util.FileUtils;
 import com.patternity.util.TemplatedWriter;
 
 /**
@@ -24,7 +25,7 @@ import com.patternity.util.TemplatedWriter;
  */
 public class SequenceDiagramPrinter extends DiagramPrinter {
 
-	public static void printDiagram(Element[] orderedElements, OccurrenceTemplate shallow, PatternOccurrence deep) {
+	public static void printDiagram(File baseDir, Element[] orderedElements, OccurrenceTemplate shallow, PatternOccurrence deep) {
 		final Node root = new Node(new Message(null, null));
 
 		for (int i = 0; i < orderedElements.length; i++) {
@@ -37,7 +38,8 @@ public class SequenceDiagramPrinter extends DiagramPrinter {
 		final String s = layout.layout(root);
 
 		final String patternName = deep.getPattern().getName();
-		final TemplatedWriter writer = new TemplatedWriter(new File(patternName + "_sequence-diagram.svg"),
+		FileUtils.makeDirs(baseDir);
+		final TemplatedWriter writer = new TemplatedWriter(new File(baseDir, patternName + "_sequence-diagram.svg"),
 				new File("template.svg"));
 		writer.write(s, "viewBox=\"0 0 1000 1000\"");
 	}

@@ -14,11 +14,16 @@ import com.patternity.graphic.behavioral.Message;
 import com.patternity.graphic.behavioral.Note;
 import com.patternity.graphic.behavioral.PingPong;
 import com.patternity.graphic.dag.Node;
+import com.patternity.util.FileUtils;
 import com.patternity.util.TemplatedWriter;
 
 public class SequenceLayoutTest {
-
-	private File tempDir = new File(System.getProperty("java.io.tmpdir"));
+	File outputDir; 
+	
+	public void setup() {
+		outputDir = new File("target/patternity.temp");
+		FileUtils.makeDirs(outputDir);
+	}
 	
 	@Test
     public void testLayout() throws Exception {
@@ -57,7 +62,7 @@ public class SequenceLayoutTest {
         final SequenceLayout layout = new SequenceLayout(16);
         final String s = layout.layout(root);
 
-        final TemplatedWriter writer = new TemplatedWriter(new File(tempDir, "SequenceLayoutTest.svg"), new File("template.svg"));
+        final TemplatedWriter writer = new TemplatedWriter(new File(outputDir, "SequenceLayoutTest.svg"), new File("template.svg"));
         writer.write(s, "viewBox=\"0 0 1000 1000\"");
 
         SnippetGenerator generator = new SnippetGenerator();
@@ -87,7 +92,7 @@ public class SequenceLayoutTest {
         final SequenceLayout layout = new SequenceLayout(16);
         final String s = layout.layout(root);
 
-        final TemplatedWriter writer = new TemplatedWriter(new File(tempDir, "SequenceLayoutTest_composite.svg"), new File("template.svg"));
+        final TemplatedWriter writer = new TemplatedWriter(new File(outputDir, "SequenceLayoutTest_composite.svg"), new File("template.svg"));
         writer.write(s, "viewBox=\"0 0 1000 1000\"");
 
     }
@@ -108,7 +113,7 @@ public class SequenceLayoutTest {
         final SequenceLayout layout = new SequenceLayout(16);
         final String s = layout.layout(root);
 
-        final TemplatedWriter writer = new TemplatedWriter(new File(tempDir, "SequenceLayoutTest_sharedeffort.svg"), new File("template.svg"));
+        final TemplatedWriter writer = new TemplatedWriter(new File(outputDir, "SequenceLayoutTest_sharedeffort.svg"), new File("template.svg"));
         writer.write(s, "viewBox=\"0 0 1000 1000\"");
 
     }
@@ -128,7 +133,7 @@ public class SequenceLayoutTest {
         final SequenceLayout layout = new SequenceLayout(16);
         final String s = layout.layout(root);
 
-        final TemplatedWriter writer = new TemplatedWriter(new File(tempDir, "SequenceLayoutTest_chain.svg"), new File("template.svg"));
+        final TemplatedWriter writer = new TemplatedWriter(new File(outputDir, "SequenceLayoutTest_chain.svg"), new File("template.svg"));
         writer.write(s, "viewBox=\"0 0 1000 1000\"");
 
     }
@@ -148,7 +153,7 @@ public class SequenceLayoutTest {
         final SequenceLayout layout = new SequenceLayout(16);
         final String s = layout.layout(root);
 
-        final TemplatedWriter writer = new TemplatedWriter(new File(tempDir, "SequenceLayoutTest__callback.svg"), new File("template.svg"));
+        final TemplatedWriter writer = new TemplatedWriter(new File(outputDir, "SequenceLayoutTest__callback.svg"), new File("template.svg"));
         writer.write(s, "viewBox=\"0 0 1000 1000\"");
     }
 

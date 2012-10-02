@@ -23,6 +23,7 @@ import com.patternity.graphic.svg.BoxRenderer;
 import com.patternity.graphic.svg.BoxStyle;
 import com.patternity.graphic.svg.LinkRenderer;
 import com.patternity.graphic.svg.LinkStyle;
+import com.patternity.util.FileUtils;
 import com.patternity.util.TemplatedWriter;
 
 /**
@@ -46,6 +47,7 @@ public class ClassDiagramPrinter extends DiagramPrinter {
 
 	public ClassDiagramPrinter(File baseDir) {
 		this.baseDir = baseDir;
+		FileUtils.makeDirs(baseDir);
 	}
 
 	public void printDiagram(Element[] orderedElements, OccurrenceTemplate shallow, PatternOccurrence deep) {
@@ -63,7 +65,7 @@ public class ClassDiagramPrinter extends DiagramPrinter {
 		final String s = buffer.toString();
 
 		final String patternName = deep.getPattern().getName();
-		final TemplatedWriter writer = new TemplatedWriter(new File(patternName + "_" + diagram + ".svg"),
+		final TemplatedWriter writer = new TemplatedWriter(new File(this.baseDir, patternName + "_" + diagram + ".svg"),
 				new File("template.svg"));
 		writer.write(s, "viewBox=\"0 0 1000 1000\"");
 	}

@@ -65,7 +65,7 @@ public class DiagramPrinter {
 		if (options.startsWith("class-diagram")) {
 			new ClassDiagramPrinter(baseDir).printDiagram(orderedElements, shallow, deep);
 		} else if (options.startsWith("sequence-diagram")) {
-			SequenceDiagramPrinter.printDiagram(orderedElements, shallow, deep);
+			SequenceDiagramPrinter.printDiagram(baseDir, orderedElements, shallow, deep);
 		}
 	}
 

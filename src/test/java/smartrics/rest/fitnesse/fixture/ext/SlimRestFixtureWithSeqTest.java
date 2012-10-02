@@ -79,7 +79,7 @@ public class SlimRestFixtureWithSeqTest {
     
     @Before
     public void setUp() {
- 		restfixtureGraphsDir = folder.newFolder("restfixture.graphs.dir").getAbsolutePath();
+ 		restfixtureGraphsDir = folder.newFolder("temp.graphs.dir").getAbsolutePath();
  		helper = new RestFixtureTestHelper();
         mockModel = mock(Model.class);
         mockCellFormatter = mock(CellFormatter.class);
@@ -155,7 +155,6 @@ public class SlimRestFixtureWithSeqTest {
     @Test
     public void shouldHaveConfigNameAsOptionalSecondParameterToBeSetToSpecifiedValue() throws Exception {
     	// this property sets the value of the dir where the graphs are generated. 
-    	System.setProperty(SlimRestFixtureWithSeq.DEFAULT_GRAPH_DIR_PROPERTY_NAME, restfixtureGraphsDir);
         SlimRestFixtureWithSeq seqFixture = new SlimRestFixtureWithSeq("http://localhost:8080", "configName", "sequence.png");
         seqFixture.doTable(helper.createSingleRowSlimTable(""));
         assertThat(seqFixture.getConfig().getName(), is(equalTo("configName")));
