@@ -65,8 +65,10 @@ public class SlimRestFixtureWithSeqTest {
     @SuppressWarnings("rawtypes")
     private CellFormatter mockCellFormatter;
     private Config config;
+    private Config bespokeConfig;
     private RestResponse lastResponse;
     private Model mockModel;
+    private String namedConfigName;
 
     /** this is set via TemporaryFolder @Rule */
 	private String restfixtureGraphsDir;
@@ -102,6 +104,10 @@ public class SlimRestFixtureWithSeqTest {
         config = Config.getConfig();
         config.add("restfixture.graphs.dir", restfixtureGraphsDir);
 
+        namedConfigName = "bespokeConfig";
+        bespokeConfig = Config.getConfig(namedConfigName);
+        bespokeConfig.add("restfixture.graphs.dir", restfixtureGraphsDir);
+        
         ContentType.resetDefaultMapping();
 
         helper.wireMocks(config, mockPartsFactory, mockRestClient, lastRequest, lastResponse, mockCellFormatter, mockBodyTypeAdapter);
@@ -155,9 +161,9 @@ public class SlimRestFixtureWithSeqTest {
     @Test
     public void shouldHaveConfigNameAsOptionalSecondParameterToBeSetToSpecifiedValue() throws Exception {
     	// this property sets the value of the dir where the graphs are generated. 
-        SlimRestFixtureWithSeq seqFixture = new SlimRestFixtureWithSeq("http://localhost:8080", "configName", "sequence.png");
+        SlimRestFixtureWithSeq seqFixture = new SlimRestFixtureWithSeq("http://localhost:8080", namedConfigName, "sequence.png");
         seqFixture.doTable(helper.createSingleRowSlimTable(""));
-        assertThat(seqFixture.getConfig().getName(), is(equalTo("configName")));
+        assertThat(seqFixture.getConfig().getName(), is(equalTo(namedConfigName)));
         assertThat(seqFixture.getBaseUrl(), is(equalTo("http://localhost:8080")));
         assertThat(seqFixture.getPictureName(), is(equalTo("sequence.png")));
     }

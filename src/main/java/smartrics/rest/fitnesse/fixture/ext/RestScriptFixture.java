@@ -256,9 +256,14 @@ public class RestScriptFixture extends RestFixture {
      * <p/>
      * Set the headers used for a url action
      */
-    public void setHeader(String text) {
-    	setHeaders(text);
-    }
+	public void setHeaders(String headers) {
+		String substitutedHeaders = GLOBALS.substitute(headers);
+		requestHeaders = parseHeaders(substitutedHeaders);
+	}
+
+	public void setHeader(String header) {
+		setHeaders(header);
+	}
 
     private boolean equalsWithAdapter(String expected, Object actual, RestDataTypeAdapter typeAdapter) throws Exception {
         typeAdapter.set(actual);

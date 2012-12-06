@@ -194,15 +194,13 @@ public class SlimRestFixtureWithSeq extends RestFixture {
 		this.initialised = false;
 	}
 
-	public SlimRestFixtureWithSeq(String hostName, String configName,
-			String pictureData) {
+	public SlimRestFixtureWithSeq(String hostName, String configName, String pictureData) {
 		super(hostName, configName);
 		this.pictureData = pictureData;
 		this.initialised = false;
 	}
 
-	public SlimRestFixtureWithSeq(PartsFactory partsFactory, String hostName,
-			String configName, String pictureData) {
+	public SlimRestFixtureWithSeq(PartsFactory partsFactory, String hostName, String configName, String pictureData) {
 		super(partsFactory, hostName, configName);
 		this.pictureData = pictureData;
 		this.initialised = false;
@@ -213,11 +211,8 @@ public class SlimRestFixtureWithSeq extends RestFixture {
 	 */
 	public void embed() {
 		cell = row.getCell(1);
-		byte[] content = PictureGenerator.generate(model.toString(),
-				parseAttributes(cell.body()), "template.svg", format);
-		cell.body(getFormatter().gray(
-				"<img src=\"data:image/" + format + ";base64,"
-						+ new String(Base64.encode(content)) + "\" />"));
+		byte[] content = PictureGenerator.generate(model.toString(), parseAttributes(cell.body()), "template.svg", format);
+		cell.body(getFormatter().gray("<img src=\"data:image/" + format + ";base64," + new String(Base64.encode(content)) + "\" />"));
 	}
 
 	public void setModel(Model model) {

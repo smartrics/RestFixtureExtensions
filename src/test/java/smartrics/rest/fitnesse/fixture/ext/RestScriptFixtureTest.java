@@ -28,6 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.junit.After;
@@ -39,6 +40,7 @@ import smartrics.rest.client.RestRequest;
 import smartrics.rest.client.RestResponse;
 import smartrics.rest.fitnesse.fixture.PartsFactory;
 import smartrics.rest.fitnesse.fixture.RestFixture.Runner;
+import smartrics.rest.fitnesse.fixture.SlimRow;
 import smartrics.rest.fitnesse.fixture.support.BodyTypeAdapter;
 import smartrics.rest.fitnesse.fixture.support.CellFormatter;
 import smartrics.rest.fitnesse.fixture.support.Config;
@@ -264,16 +266,13 @@ public class RestScriptFixtureTest {
 	public void testSetBodyString() {
 		String body = "{\"welcoming\" : {\"name\" : \"harry\", \"age\" : 44}}";
 		fixture.setBody(body);
-		
 		doPut();
-		
 		verify(mockLastRequest).setBody(body);
 	}
 
 	@Test
 	public void testSetHeaderString() {
-		fixture.setHeader("Browser: unit test");
-		
+		fixture.setHeaders("Browser: unit test");
 		Map<String, String> headers = fixture.getHeaders();
 		assertEquals("unit test", headers.get("Browser"));
 	}

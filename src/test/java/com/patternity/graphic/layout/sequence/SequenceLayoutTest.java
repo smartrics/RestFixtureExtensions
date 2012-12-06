@@ -2,6 +2,7 @@ package com.patternity.graphic.layout.sequence;
 
 import java.io.File;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import junit.framework.TestCase;
@@ -20,6 +21,7 @@ import com.patternity.util.TemplatedWriter;
 public class SequenceLayoutTest {
 	File outputDir; 
 	
+	@Before
 	public void setup() {
 		outputDir = new File("target/patternity.temp");
 		FileUtils.makeDirs(outputDir);
@@ -61,8 +63,8 @@ public class SequenceLayoutTest {
 
         final SequenceLayout layout = new SequenceLayout(16);
         final String s = layout.layout(root);
-
-        final TemplatedWriter writer = new TemplatedWriter(new File(outputDir, "SequenceLayoutTest.svg"), new File("template.svg"));
+        final String outFile = outputDir.getAbsolutePath() + "/SequenceLayoutTest.svg";
+        final TemplatedWriter writer = new TemplatedWriter(new File(outFile), new File("template.svg"));
         writer.write(s, "viewBox=\"0 0 1000 1000\"");
 
         SnippetGenerator generator = new SnippetGenerator();
