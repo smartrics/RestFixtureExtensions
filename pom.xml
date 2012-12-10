@@ -5,13 +5,13 @@
 	<!-- required to link to sonatype: 
 		see https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide#SonatypeOSSMavenRepositoryUsageGuide-4.MavenRepositories 
 		-->
-	<!--  - ->
+	<!--  -->
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
 		<version>7</version>
 	</parent>
-	<!- -  -->
+	<!--  -->
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>smartrics.restfixture</groupId>
