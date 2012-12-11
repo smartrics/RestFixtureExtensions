@@ -16,7 +16,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>smartrics.restfixture</groupId>
 	<artifactId>smartrics-RestFixtureExtensions</artifactId>
-	<version>3.0</version>
+	<version>3.1-SNAPSHOT</version>
 	<name>smartrics-RestFixtureExtensions</name>
 	<url>https://github.com/smartrics/RestFixtureExtensions</url>
 	<packaging>jar</packaging>
@@ -106,7 +106,38 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<!-- this is needed for m2e to ignore the copy-dependencies execution 
+						below, as not supported -->
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-dependency-plugin</artifactId>
+										<versionRange>[1.0.0,)</versionRange>
+										<goals>
+											<goal>copy-dependencies</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -131,6 +162,20 @@
 						<id>attach-sources</id>
 						<goals>
 							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<configuration>
+							<outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+						</configuration>
+						<goals>
+							<goal>copy-dependencies</goal>
 						</goals>
 					</execution>
 				</executions>
