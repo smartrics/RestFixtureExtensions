@@ -20,18 +20,13 @@
  */
 package smartrics.rest.fitnesse.fixture.ext;
 
-import java.awt.Rectangle;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.EventListener;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.patternity.graphic.behavioral.Agent;
+import com.patternity.graphic.behavioral.Message;
+import com.patternity.graphic.behavioral.Note;
+import com.patternity.graphic.dag.Node;
+import com.patternity.graphic.layout.sequence.SequenceLayout;
+import com.patternity.util.TemplatedWriter;
+import fitnesse.util.Base64;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
@@ -40,7 +35,6 @@ import org.apache.batik.transcoder.image.JPEGTranscoder;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import smartrics.rest.client.RestData.Header;
 import smartrics.rest.fitnesse.fixture.PartsFactory;
 import smartrics.rest.fitnesse.fixture.RestFixture;
@@ -48,14 +42,12 @@ import smartrics.rest.fitnesse.fixture.ext.SlimRestFixtureWithSeq.Model;
 import smartrics.rest.fitnesse.fixture.support.CellWrapper;
 import smartrics.rest.fitnesse.fixture.support.Tools;
 
-import com.patternity.graphic.behavioral.Agent;
-import com.patternity.graphic.behavioral.Message;
-import com.patternity.graphic.behavioral.Note;
-import com.patternity.graphic.dag.Node;
-import com.patternity.graphic.layout.sequence.SequenceLayout;
-import com.patternity.util.TemplatedWriter;
-
-import fitnesse.components.Base64;
+import java.awt.*;
+import java.io.*;
+import java.util.EventListener;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An extension of RestFixture that generates a sequence diagrams for a table
@@ -581,18 +573,6 @@ class MyFixtureListener implements EventListener {
 	private final String picFileName;
 	private final Map<String, String> attributes;
 
-	/**
-	 * @param f
-	 *            the fixture instance backing up a table. it's necessary as the
-	 *            file name is only know at execution time and the
-	 *            <code>args</code> array containing the file name for the
-	 *            diagram is not known until the fixture has been created @
-	 * @param supportFilesDir
-	 *            the directory containing the support files needed to generate
-	 *            the diagram
-	 * @param graphDir
-	 *            the directory where the sequence diagram is generated
-	 */
 	public MyFixtureListener(String outFileName, Model m,
 			Map<String, String> attr) {
 		model = m;
