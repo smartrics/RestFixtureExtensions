@@ -49,7 +49,7 @@
 	</organization>
 	<ciManagement>
 		<system>Fazend Hudson</system>
-		<url>http://jenkins.fazend.com:8080/job/RestFixtureExtensions</url>
+		<url>https://travis-ci.org/smartrics/RestFixtureExtensions</url>
 	</ciManagement>
 	<issueManagement>
 		<system>GitHub Issues</system>
@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>smartrics.restfixture</groupId>
 			<artifactId>smartrics-RestFixture</artifactId>
-			<version>3.1-SNAPSHOT</version>
+			<version>4.0</version>
 		</dependency>
 		<dependency>
 			<!-- required by patternity -->
